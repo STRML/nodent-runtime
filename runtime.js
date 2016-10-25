@@ -17,29 +17,7 @@
  *      the function being bound/wrapped
  */
 
-function processIncludes(includes,input) {
-    var src = input.toString() ;
-    var t = "return "+src ;
-    var args = src.match(/.*\(([^)]*)\)/)[1] ;
-    var re = /['"]!!!([^'"]*)['"]/g ;
-    var m = [] ;
-    while (1) {
-        var mx = re.exec(t) ;
-        if (mx)
-            m.push(mx) ;
-        else break ;
-    }
-    m.reverse().forEach(function(e){
-        t = t.slice(0,e.index)+includes[e[1]]+t.substr(e.index+e[0].length) ;
-    }) ;
-    t = t.replace(/\/\*[^*]*\*\//g,' ').replace(/\s+/g,' ') ;
-    return new Function(args,t)() ;
-}
 
-var $asyncbind = processIncludes({
-    zousan:require('./zousan').toString(),
-    thenable:require('./thenableFactory').toString()
-},
 function $asyncbind(self,catcher) {
     "use strict";
     if (!Function.prototype.$asyncbind) {
@@ -69,8 +47,8 @@ function $asyncbind(self,catcher) {
         };
     }
     if (!$asyncbind.LazyThenable) {
-        $asyncbind.LazyThenable = '!!!thenable'();
-        $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = '!!!zousan')();
+        $asyncbind.LazyThenable = require('./thenableFactory')();
+        $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = require('./zousan'))();
     }
 
     var resolver = this;
@@ -95,7 +73,7 @@ function $asyncbind(self,catcher) {
     function boundThen() {
         return resolver.apply(self,arguments);
     }
-}) ;
+}
 
 function $asyncspawn(promiseProvider,self) {
     if (!Function.prototype.$asyncspawn) {
